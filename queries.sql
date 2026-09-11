@@ -58,6 +58,58 @@ GROUP BY pizzas.pizza_type_id
 ORDER BY revenue DESC
 LIMIT 3;
 
--- Calculate the percentage contribution of each pizza type to total revenue.
--- Analyze the cumulative revenue generated over time.
--- Determine the top 3 most ordered pizza types based on revenue for each pizza category.
+-- 11) Calculate the percentage contribution of each pizza type to total revenue.
+SELECT
+    pt.name AS pizza_type,
+    ROUND(SUM(od.quantity * p.price), 2) AS revenue,
+    ROUND(
+        SUM(od.quantity * p.price) * 100.0 /
+        (SELECT SUM(od2.quantity * p2.price)
+         FROM order_details od2
+         JOIN pizzas p2 ON od2.pizza_id = p2.pizza_id),
+        2
+    ) AS pct_of_total_revenue
+FROM order_details od
+JOIN pizzas p       ON od.pizza_id = p.pizza_id
+JOIN pizza_types pt ON p.pizza_type_id = pt.pizza_type_id
+GROUP BY pt.name
+ORDER BY pct_of_total_revenue DESC;
+-- 12) Analyze the cumulative revenue generated over time.
+WITH daily_revenue AS (
+    SELECT
+        o.date AS order_date,
+        SUM(od.quantity * p.price) AS revenue
+    FROM order_details od
+    JOIN orders o  ON od.order_id = o.order_id
+    JOIN pizzas p  ON od.pizza_id = p.pizza_id
+    GROUP BY o.date
+)
+SELECT
+    order_date,
+    revenue,
+    ROUND(SUM(revenue) OVER (ORDER BY order_date), 2) AS cumulative_revenue
+FROM daily_revenue
+ORDER BY order_date;
+-- 13) Determine the top 3 most ordered pizza types based on revenue for each pizza category.
+WITH revenue_by_type AS (
+    SELECT
+        pt.category,
+        pt.name AS pizza_type,
+        SUM(od.quantity * p.price) AS revenue
+    FROM order_details od
+    JOIN pizzas p       ON od.pizza_id = p.pizza_id
+    JOIN pizza_types pt ON p.pizza_type_id = pt.pizza_type_id
+    GROUP BY pt.category, pt.name
+),
+ranked AS (
+    SELECT
+        category,
+        pizza_type,
+        revenue,
+        RANK() OVER (PARTITION BY category ORDER BY revenue DESC) AS rnk
+    FROM revenue_by_type
+)
+SELECT category, pizza_type, revenue
+FROM ranked
+WHERE rnk <= 3
+ORDER BY category, rnk;
