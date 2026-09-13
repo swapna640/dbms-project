@@ -26,7 +26,7 @@ Our project uses a dataset from Zepto, found on Kaggle (link) on sample pizza sa
 ## SQL Queries
 
 
-## Application layer
+## PL/SQL Queries
 
 
 ## Steps to set up
