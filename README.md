@@ -165,7 +165,7 @@ EXEC pizza_analytics_full.a3_top3_by_revenue_per_category(:rc);
 PRINT rc;
 ```
 
-Query optimisation
+###Query optimisation
 
 ### Techniques applied
 
