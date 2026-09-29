@@ -18,54 +18,6 @@ Our project uses a dataset from Zepto, found on Kaggle (link) on sample pizza sa
 
 
 
-## Part 1: Query optimisation
-
-### Techniques applied
-
-| # | Fundamental | What it means here |
-|---|---|---|
-| 1 | **Push aggregation before joins** | `order_details` is large but has only ~96 distinct `pizza_id`s. Aggregate it first, then join the small result to `pizzas` and `pizza_types`. |
-| 2 | **Use the right join type** | `LEFT JOIN` restricts join reordering. Every query needs matching rows only, so `INNER JOIN` is used. |
-| 3 | **Avoid redundant scans and derived tables** | Window functions and single-pass formulas replace second scans and temporary tables (Q8, Q9, Q11). |
-| 4 | **Support the plan with indexes** | Covering indexes let the aggregates run from the index alone. |
-| 5 | **Cheaper primitives** | `COUNT(*)` instead of `COUNT(DISTINCT pk)`, and `ROWS` frames instead of the default `RANGE` frame in window functions. |
-
-
-## Relational Algebra  and Relational Calculus
-
-Each query is expressed in **extended relational algebra (RA)** and **tuple relational calculus (TRC)**. Because optimisation changes only the physical plan, the algebra is the same for the original and optimised SQL. Q5 and Q6 use the corrected logic.
-
-### Notation
-
-| Symbol | Meaning |
-|---|---|
-| σ | Selection |
-| π | Projection |
-| ⋈ | Natural join |
-| × | Cross product |
-| − | Set difference |
-| ρ | Rename |
-| `G γ F` | Group by `G`, apply aggregate `F` |
-| τ | Sort |
-| λₙ | Keep first *n* tuples |
-| ω | Window operator |
-| `AGG{ expr \| cond }` | TRC aggregate extension (aggregate `expr` over tuples satisfying `cond`) |
-
-### Coverage
-
-| Q | RA idea | TRC idea |
-|---|---|---|
-| 1, 2, 6, 7 | Grouping and aggregation (`γ`) over joins | Aggregate set `AGG{ … }` |
-| 3 | Set difference against a self-join (pure RA) | `¬∃q (q.price > p.price)` (pure TRC) |
-| 4, 5, 10 | `γ` then `τ`/`λ`, or self-join to find maxima | Count of tuples with a larger value < *n* |
-| 8, 9 | Two-level aggregation (`γ` over `γ`) | Nested aggregate over a derived set |
-| 11 | Cross product with a one-tuple grand total | Inline `SUM{ … }` in the expression |
-| 12 | Self-join with `≤` plus `γ` (the algebraic form of a running total) | Aggregate with `d2.date ≤ d1.date` |
-| 13 | Window operator `ω RANK()` | `COUNT{ … } < 3` within the same category |
-
-The full expressions for all 13 queries are in [`relational_algebra_calculus.md`](relational_algebra_calculus.md).
-
-
 ## SQL Queries
 
 The SQL component performs analytical queries on the Pizza Sales Management database. The database consists of four related tables: `pizza_types`, `pizzas`, `orders`, and `order_details`. The schema represents pizza types, size-specific pizza variants, order headers, and individual order line items.
@@ -212,6 +164,54 @@ EXEC pizza_analytics_full.a3_top3_by_revenue_per_category(:rc);
 
 PRINT rc;
 ```
+
+Query optimisation
+
+### Techniques applied
+
+| # | Fundamental | What it means here |
+|---|---|---|
+| 1 | **Push aggregation before joins** | `order_details` is large but has only ~96 distinct `pizza_id`s. Aggregate it first, then join the small result to `pizzas` and `pizza_types`. |
+| 2 | **Use the right join type** | `LEFT JOIN` restricts join reordering. Every query needs matching rows only, so `INNER JOIN` is used. |
+| 3 | **Avoid redundant scans and derived tables** | Window functions and single-pass formulas replace second scans and temporary tables (Q8, Q9, Q11). |
+| 4 | **Support the plan with indexes** | Covering indexes let the aggregates run from the index alone. |
+| 5 | **Cheaper primitives** | `COUNT(*)` instead of `COUNT(DISTINCT pk)`, and `ROWS` frames instead of the default `RANGE` frame in window functions. |
+
+## Relational Algebra  and Relational Calculus
+
+Each query is expressed in **extended relational algebra (RA)** and **tuple relational calculus (TRC)**. Because optimisation changes only the physical plan, the algebra is the same for the original and optimised SQL. Q5 and Q6 use the corrected logic.
+
+### Notation
+
+| Symbol | Meaning |
+|---|---|
+| σ | Selection |
+| π | Projection |
+| ⋈ | Natural join |
+| × | Cross product |
+| − | Set difference |
+| ρ | Rename |
+| `G γ F` | Group by `G`, apply aggregate `F` |
+| τ | Sort |
+| λₙ | Keep first *n* tuples |
+| ω | Window operator |
+| `AGG{ expr \| cond }` | TRC aggregate extension (aggregate `expr` over tuples satisfying `cond`) |
+
+### Coverage
+
+| Q | RA idea | TRC idea |
+|---|---|---|
+| 1, 2, 6, 7 | Grouping and aggregation (`γ`) over joins | Aggregate set `AGG{ … }` |
+| 3 | Set difference against a self-join (pure RA) | `¬∃q (q.price > p.price)` (pure TRC) |
+| 4, 5, 10 | `γ` then `τ`/`λ`, or self-join to find maxima | Count of tuples with a larger value < *n* |
+| 8, 9 | Two-level aggregation (`γ` over `γ`) | Nested aggregate over a derived set |
+| 11 | Cross product with a one-tuple grand total | Inline `SUM{ … }` in the expression |
+| 12 | Self-join with `≤` plus `γ` (the algebraic form of a running total) | Aggregate with `d2.date ≤ d1.date` |
+| 13 | Window operator `ω RANK()` | `COUNT{ … } < 3` within the same category |
+
+The full expressions for all 13 queries are in [`relational_algebra_calculus.md`](relational_algebra_calculus.md).
+
+
 
 ### PL/SQL Concepts Used
 
