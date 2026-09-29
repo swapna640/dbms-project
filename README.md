@@ -165,9 +165,8 @@ EXEC pizza_analytics_full.a3_top3_by_revenue_per_category(:rc);
 PRINT rc;
 ```
 
-###Query optimisation
 
-### Techniques applied
+### Query Optimization (Techniques applied)
 
 | # | Fundamental | What it means here |
 |---|---|---|
