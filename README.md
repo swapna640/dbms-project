@@ -15,7 +15,9 @@ Vaishnavi Choudhary 24MIP10156
 Our project uses a dataset from Zepto, found on Kaggle (link) on sample pizza sales. The schema consists of 4 tables : order_details.csv, orders.csv, pizza_types.csv, pizzas.csv. After extensive data cleaning and preprocessing, we worked on the basic ER model of the schema. Next, was the writing of the SQL queries, along with the equivalent statements in relational algebra and relational calculus.
 
 ## ER Model
+The Entity-Relationship Model (ER Model) is a conceptual model for designing a database. This model represents the logical structure of a database, including entities, their attributes, and relationships between them.
 
+![ER Diagram](/er_diagram.png)
 
 
 ## SQL Queries
